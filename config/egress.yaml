@@ -1,0 +1,21 @@
+api_key: vbrm_openvidu_key
+api_secret: vbrm_openvidu_secret_2024_secure_key
+ws_url: ws://openvidu:7880
+
+redis:
+  address: redis:6379
+  password: VbrmRedis2024Secure
+
+s3:
+  access_key: vbrmminioadmin
+  secret: VbrmMinio2024SecureKey
+  region: us-east-1
+  endpoint: http://openvidu-minio:9000
+  bucket: recordings
+  force_path_style: true
+
+health_port: 8080
+prometheus_port: 9090
+log_level: info
+
+backup_storage: /home/egress/backup_storage

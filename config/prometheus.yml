@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'openvidu'
+    static_configs:
+      - targets: ['openvidu:7880']
+    metrics_path: /metrics
+
+  - job_name: 'egress'
+    static_configs:
+      - targets: ['egress:9090']
+
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']

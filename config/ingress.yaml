@@ -1,0 +1,14 @@
+api_key: vbrm_openvidu_key
+api_secret: vbrm_openvidu_secret_2024_secure_key
+ws_url: ws://openvidu:7880
+
+redis:
+  address: redis:6379
+  password: VbrmRedis2024Secure
+
+rtmp_port: 1935
+whip_port: 7885
+http_relay_port: 9090
+
+logging:
+  level: info

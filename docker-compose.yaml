@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  openvidu:
+    image: openvidu/openvidu-server-kms:2.30.0
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - DOMAIN_OR_PUBLIC_IP=${DOMAIN_OR_PUBLIC_IP}
+      - OPENVIDU_SECRET=${OPENVIDU_SECRET}
+      - CERTIFICATE_TYPE=letsencrypt
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    volumes:
+      - ./openvidu-recordings:/opt/openvidu/recordings
+      - ./kms-crashes:/opt/openvidu/kms-crashes
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./minio-data:/data
