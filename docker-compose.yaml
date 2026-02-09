@@ -1,25 +1,45 @@
 version: '3.8'
 
 services:
-  openvidu:
-    image: openvidu/openvidu-server-kms:2.30.0
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./config/livekit.yaml:/etc/livekit.yaml
+    depends_on:
+      - redis
+
+  egress:
+    image: livekit/egress:latest
     restart: unless-stopped
     network_mode: host
     environment:
-      - DOMAIN_OR_PUBLIC_IP=${DOMAIN_OR_PUBLIC_IP}
-      - OPENVIDU_SECRET=${OPENVIDU_SECRET}
-      - CERTIFICATE_TYPE=letsencrypt
-      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - EGRESS_CONFIG_FILE=/etc/egress.yaml
     volumes:
-      - ./openvidu-recordings:/opt/openvidu/recordings
-      - ./kms-crashes:/opt/openvidu/kms-crashes
+      - ./config/egress.yaml:/etc/egress.yaml
+    depends_on:
+      - redis
 
-  minio:
-    image: minio/minio
+  ingress:
+    image: livekit/ingress:latest
     restart: unless-stopped
-    command: server /data --console-address ":9001"
+    network_mode: host
     environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - INGRESS_CONFIG_FILE=/etc/ingress.yaml
     volumes:
-      - ./minio-data:/data
+      - ./config/ingress.yaml:/etc/ingress.yaml
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass VbrmRedis2024Secure
+    network_mode: host
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

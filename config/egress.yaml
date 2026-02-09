@@ -7,11 +7,11 @@ redis:
   password: VbrmRedis2024Secure
 
 s3:
-  access_key: vbrmminioadmin
-  secret: VbrmMinio2024SecureKey
+  access_key: IJE1GG708IQ2LEH7I2AS
+  secret: PV7b+H48T5k0lSMnkjnu+tYdZTnBzwdiQCEo7mBj
   region: us-east-1
-  endpoint: http://openvidu-minio:9000
-  bucket: recordings
+  endpoint: https://s3.iamucchash.com
+  bucket: bankvision-mtb-ext
   force_path_style: true
 
 health_port: 8080
