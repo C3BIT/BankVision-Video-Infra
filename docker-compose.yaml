@@ -93,6 +93,11 @@ services:
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.external-url=/prometheus/'
+      - '--web.route-prefix=/'
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
       interval: 30s
@@ -106,6 +111,8 @@ services:
     restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=VbrmGrafana2024Secure
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
     volumes:
       - grafana_data:/var/lib/grafana
       - ./config/grafana/provisioning:/etc/grafana/provisioning
