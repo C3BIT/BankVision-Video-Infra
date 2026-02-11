@@ -48,22 +48,45 @@ services:
         limits:
           memory: 512M
     # Private storage to avoid conflict with existing server MinIO
-    # Reachable internally by Egress as 'minio:9000'
     networks:
       - mtb-network
 
-#   egress:
-#     image: livekit/egress:v1.8.6
-#     restart: unless-stopped
-#     environment:
-#       - EGRESS_CONFIG_FILE=/etc/egress.yaml
-#       - LIVEKIT_REDIS_ADDRESS=redis:6379
-#       - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
-#       - LIVEKIT_URL=ws://livekit:7880
-#     volumes:
-#       - ./config/egress.yaml:/etc/egress.yaml
-#     networks:
-#       - mtb-network
+  egress:
+    image: livekit/egress:v1.8.6
+    restart: unless-stopped
+    environment:
+      - EGRESS_CONFIG_FILE=/etc/egress.yaml
+      - LIVEKIT_REDIS_ADDRESS=redis:6379
+      - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
+      - LIVEKIT_URL=ws://livekit:7880
+    volumes:
+      - ./config/egress.yaml:/etc/egress.yaml
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    networks:
+      - mtb-network
+
+  ingress:
+    image: livekit/ingress:v1.4.3
+    restart: unless-stopped
+    ports:
+      - "1936:1935" # RTMP (Shifted to 1936 to avoid host conflict)
+      - "7886:7885/udp" # WHIP (Shifted to 7886 to avoid host conflict)
+    environment:
+      - INGRESS_CONFIG_FILE=/etc/ingress.yaml
+      - LIVEKIT_REDIS_ADDRESS=redis:6379
+      - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
+      - LIVEKIT_URL=ws://livekit:7880
+    volumes:
+      - ./config/ingress.yaml:/etc/ingress.yaml
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - mtb-network
 
 networks:
   mtb-network:
