@@ -1,19 +1,19 @@
 services:
   livekit:
     image: livekit/livekit-server:v1.8.2
-    # POINTING TO THE FILE INSIDE THE DIRECTORY MOUNT
-    command: run --config /etc/livekit/livekit.yaml
+    # Use a unique internal path to avoid any pre-existing Coolify volume conflicts
+    command: run --config /livekit_app/config/livekit.yaml
     restart: unless-stopped
     ports:
       - "7880:7880"
       - "7881:7881"
       - "50000-50010:50000-50010/udp"
     volumes:
-      # Mounting the DIRECTORY is much more stable in Coolify than mounting files
-      - ./config:/etc/livekit:ro
+      # Mounting the directory is much more reliable in Coolify than mounting individual files
+      - ./config:/livekit_app/config:ro
     labels:
       - "coolify.managed=true"
-      # FORCE TRAEFIK TO PORT 7880
+      # Correctly routing the domain to the LiveKit port
       - "traefik.http.services.livekit.loadbalancer.server.port=7880"
       - "traefik.http.routers.livekit.service=livekit"
     deploy:
@@ -56,14 +56,14 @@ services:
     image: livekit/egress:v1.8.6
     restart: unless-stopped
     environment:
-      # POINTING TO THE FILE INSIDE THE DIRECTORY MOUNT
-      - EGRESS_CONFIG_FILE=/etc/egress/egress.yaml
+      # Use a unique internal path to avoid any pre-existing Coolify volume conflicts
+      - EGRESS_CONFIG_FILE=/egress_app/config/egress.yaml
       - LIVEKIT_REDIS_ADDRESS=redis:6379
       - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
       - LIVEKIT_URL=ws://livekit:7880
     volumes:
-      # Mounting the DIRECTORY is much more stable in Coolify than mounting files
-      - ./config:/etc/egress:ro
+      # Mounting the directory is much more reliable in Coolify than mounting individual files
+      - ./config:/egress_app/config:ro
     deploy:
       resources:
         limits:
