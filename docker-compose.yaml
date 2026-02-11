@@ -1,19 +1,19 @@
 services:
   livekit:
     image: livekit/livekit-server:v1.8.2
-    # Use a unique internal path to avoid any pre-existing Coolify volume conflicts
-    command: run --config /livekit_app/config/livekit.yaml
+    # PASSING KEYS DIRECTLY via command to bypass missing config file errors
+    command: --keys "vbrm_openvidu_key: vbrm_openvidu_secret_2024_secure_key" run
     restart: unless-stopped
     ports:
       - "7880:7880"
       - "7881:7881"
       - "50000-50010:50000-50010/udp"
-    volumes:
-      # Mounting the directory is much more reliable in Coolify than mounting individual files
-      - ./config:/livekit_app/config:ro
+    # Keeping redis config in environment to further reduce file dependency
+    environment:
+      - LIVEKIT_REDIS_ADDRESS=redis:6379
+      - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
     labels:
       - "coolify.managed=true"
-      # Correctly routing the domain to the LiveKit port
       - "traefik.http.services.livekit.loadbalancer.server.port=7880"
       - "traefik.http.routers.livekit.service=livekit"
     deploy:
@@ -55,15 +55,12 @@ services:
   egress:
     image: livekit/egress:v1.8.6
     restart: unless-stopped
+    # PASSING FULL CONFIG VIA ENVIRONMENT to bypass missing egress.yaml file
     environment:
-      # Use a unique internal path to avoid any pre-existing Coolify volume conflicts
-      - EGRESS_CONFIG_FILE=/egress_app/config/egress.yaml
+      - EGRESS_CONFIG="{\"api_key\":\"vbrm_openvidu_key\",\"api_secret\":\"vbrm_openvidu_secret_2024_secure_key\",\"ws_url\":\"ws://livekit:7880\",\"redis\":{\"address\":\"redis:6379\",\"password\":\"VbrmRedis2024Secure\"},\"s3\":{\"access_key\":\"IJE1GG708IQ2LEH7I2AS\",\"secret\":\"PV7b+H48T5k0lSMnkjnu+tYdZTnBzwdiQCEo7mBj\",\"region\":\"us-east-1\",\"endpoint\":\"http://minio:9000\",\"bucket\":\"bankvision-mtb-ext\",\"force_path_style\":true}}"
       - LIVEKIT_REDIS_ADDRESS=redis:6379
       - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
       - LIVEKIT_URL=ws://livekit:7880
-    volumes:
-      # Mounting the directory is much more reliable in Coolify than mounting individual files
-      - ./config:/egress_app/config:ro
     deploy:
       resources:
         limits:
