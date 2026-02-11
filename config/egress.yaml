@@ -10,7 +10,7 @@ s3:
   access_key: IJE1GG708IQ2LEH7I2AS
   secret: PV7b+H48T5k0lSMnkjnu+tYdZTnBzwdiQCEo7mBj
   region: us-east-1
-  endpoint: https://s3.iamucchash.com
+  endpoint: http://minio:9000
   bucket: bankvision-mtb-ext
   force_path_style: true
 
