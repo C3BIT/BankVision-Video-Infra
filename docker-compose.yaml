@@ -1,17 +1,17 @@
 services:
   livekit:
     image: livekit/livekit-server:v1.8.2
-    command: run --config /etc/livekit/livekit.yaml
+    # Moving to unique internal path to avoid volume conflicts in Coolify
+    command: run --config /app/config/livekit.yaml
     restart: unless-stopped
     ports:
       - "7880:7880"
       - "7881:7881"
       - "50000-50010:50000-50010/udp"
     volumes:
-      - ./config:/etc/livekit:ro
+      - ./config/livekit.yaml:/app/config/livekit.yaml:ro
     labels:
       - "coolify.managed=true"
-      # Explicitly telling the proxy to use port 7880 for this domain
       - "traefik.http.services.livekit.loadbalancer.server.port=7880"
     deploy:
       resources:
@@ -53,12 +53,13 @@ services:
     image: livekit/egress:v1.8.6
     restart: unless-stopped
     environment:
-      - EGRESS_CONFIG_FILE=/etc/egress/egress.yaml
+      # Moving to unique internal path to avoid volume conflicts in Coolify
+      - EGRESS_CONFIG_FILE=/app/config/egress.yaml
       - LIVEKIT_REDIS_ADDRESS=redis:6379
       - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
       - LIVEKIT_URL=ws://livekit:7880
     volumes:
-      - ./config:/etc/egress:ro
+      - ./config/egress.yaml:/app/config/egress.yaml:ro
     deploy:
       resources:
         limits:
