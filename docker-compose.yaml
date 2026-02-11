@@ -65,7 +65,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 2G
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - mtb-network
 
