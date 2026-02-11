@@ -1,7 +1,7 @@
 services:
   livekit:
     image: livekit/livekit-server:v1.8.2
-    # No command flags needed, all config is in the env var
+    # LiveKit is confirmed stable with this multi-line config injection
     command: run
     restart: unless-stopped
     ports:
@@ -9,7 +9,6 @@ services:
       - "7881:7881"
       - "50000-50010:50000-50010/udp"
     environment:
-      # Passing the entire YAML content directly to bypass all volume issues
       - |
         LIVEKIT_CONFIG=
         port: 7880
@@ -66,10 +65,14 @@ services:
   egress:
     image: livekit/egress:v1.8.6
     restart: unless-stopped
-    # Passing the entire YAML content directly to bypass all volume issues
-    environment:
+    # ULTIMATE HACK: Create the config file internally to bypass Coolify volume issues
+    user: root
+    entrypoint:
+      - /bin/sh
+      - -c
       - |
-        EGRESS_CONFIG=
+        mkdir -p /etc/egress
+        cat <<EOF > /etc/egress/egress.yaml
         api_key: vbrm_openvidu_key
         api_secret: vbrm_openvidu_secret_2024_secure_key
         ws_url: ws://livekit:7880
@@ -83,6 +86,8 @@ services:
           endpoint: http://minio:9000
           bucket: bankvision-mtb-ext
           force_path_style: true
+        EOF
+        exec /tini -- egress --config /etc/egress/egress.yaml
     deploy:
       resources:
         limits:
