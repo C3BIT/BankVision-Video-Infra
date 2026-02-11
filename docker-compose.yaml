@@ -26,12 +26,6 @@ services:
       resources:
         limits:
           memory: 256M
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "VbrmRedis2024Secure", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     networks:
       - mtb-network
 
@@ -66,23 +60,20 @@ services:
       resources:
         limits:
           memory: 2G
-    depends_on:
-      redis:
-        condition: service_healthy
     networks:
       - mtb-network
 
 #   ingress:
 #     image: livekit/ingress:v1.4.3
-#     ... (Temporarily disabled for Lean Core stability)
+#     ... (Temporarily disabled for Raw Startup stability)
 
 #   prometheus:
 #     image: prom/prometheus:v2.54.1
-#     ... (Temporarily disabled for Lean Core stability)
+#     ... (Temporarily disabled for Raw Startup stability)
 
 #   grafana:
 #     image: grafana/grafana:11.2.0
-#     ... (Temporarily disabled for Lean Core stability)
+#     ... (Temporarily disabled for Raw Startup stability)
 
 networks:
   mtb-network:
