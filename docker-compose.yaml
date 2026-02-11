@@ -45,7 +45,7 @@ services:
     depends_on:
       - redis
     networks:
-      - bankvision-infra
+      - mtb-network
 
   minio:
     image: minio/minio:latest
@@ -61,7 +61,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     networks:
-      - bankvision-infra
+      - mtb-network
 
   redis:
     image: redis:7.4-alpine
@@ -70,7 +70,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - bankvision-infra
+      - mtb-network
 
 networks:
   mtb-network:
