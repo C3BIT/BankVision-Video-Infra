@@ -1,14 +1,15 @@
 services:
   livekit:
     image: livekit/livekit-server:v1.8.2
-    command: run --config /etc/livekit.yaml
+    # Pointing to the file inside the mapped directory
+    command: run --config /etc/livekit/livekit.yaml
     restart: unless-stopped
     ports:
       - "7880:7880"
       - "7881:7881"
       - "50000-50020:50000-50020/udp"
     volumes:
-      - ./config/livekit.yaml:/etc/livekit.yaml
+      - ./config:/etc/livekit:ro
     deploy:
       resources:
         limits:
@@ -50,12 +51,13 @@ services:
     image: livekit/egress:v1.8.6
     restart: unless-stopped
     environment:
-      - EGRESS_CONFIG_FILE=/etc/egress.yaml
+      # Pointing to the file inside the mapped directory
+      - EGRESS_CONFIG_FILE=/etc/egress/egress.yaml
       - LIVEKIT_REDIS_ADDRESS=redis:6379
       - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
       - LIVEKIT_URL=ws://livekit:7880
     volumes:
-      - ./config/egress.yaml:/etc/egress.yaml
+      - ./config:/etc/egress:ro
     deploy:
       resources:
         limits:
@@ -65,15 +67,15 @@ services:
 
 #   ingress:
 #     image: livekit/ingress:v1.4.3
-#     ... (Temporarily disabled for Raw Startup stability)
+#     ... (Temporarily disabled for stability)
 
 #   prometheus:
 #     image: prom/prometheus:v2.54.1
-#     ... (Temporarily disabled for Raw Startup stability)
+#     ...
 
 #   grafana:
 #     image: grafana/grafana:11.2.0
-#     ... (Temporarily disabled for Raw Startup stability)
+#     ...
 
 networks:
   mtb-network:
