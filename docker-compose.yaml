@@ -9,6 +9,10 @@ services:
       - "50000-50010:50000-50010/udp"
     volumes:
       - ./config:/etc/livekit:ro
+    labels:
+      - "coolify.managed=true"
+      # Explicitly telling the proxy to use port 7880 for this domain
+      - "traefik.http.services.livekit.loadbalancer.server.port=7880"
     deploy:
       resources:
         limits:
@@ -61,9 +65,6 @@ services:
           memory: 1500M
     networks:
       - mtb-network
-
-# Temporarily disabled for Maximum Stability during parallel builds
-# ingress, prometheus, grafana
 
 networks:
   mtb-network:
