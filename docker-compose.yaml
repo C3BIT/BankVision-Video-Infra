@@ -12,7 +12,7 @@ services:
     depends_on:
       - redis
     networks:
-      - bankvision-infra
+      - mtb-network
 
   egress:
     image: livekit/egress:latest
@@ -27,7 +27,7 @@ services:
     depends_on:
       - redis
     networks:
-      - bankvision-infra
+      - mtb-network
 
   ingress:
     image: livekit/ingress:latest
@@ -73,8 +73,9 @@ services:
       - bankvision-infra
 
 networks:
-  bankvision-infra:
-    name: bankvision-infra
+  mtb-network:
+    external: true
+    name: mtb-network
 
 volumes:
   redis_data:
