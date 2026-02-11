@@ -1,15 +1,16 @@
 services:
   livekit:
     image: livekit/livekit-server:v1.8.2
-    # PASSING KEYS DIRECTLY via command to bypass missing config file errors
-    command: --keys "vbrm_openvidu_key: vbrm_openvidu_secret_2024_secure_key" run
+    # Simple command using environment variables for keys
+    command: run
     restart: unless-stopped
     ports:
       - "7880:7880"
       - "7881:7881"
       - "50000-50010:50000-50010/udp"
-    # Keeping redis config in environment to further reduce file dependency
     environment:
+      # LiveKit can take keys via LIVEKIT_KEYS environment variable (YAML format)
+      - LIVEKIT_KEYS=vbrm_openvidu_key: vbrm_openvidu_secret_2024_secure_key
       - LIVEKIT_REDIS_ADDRESS=redis:6379
       - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
     labels:
@@ -55,16 +56,23 @@ services:
   egress:
     image: livekit/egress:v1.8.6
     restart: unless-stopped
-    # PASSING FULL CONFIG VIA ENVIRONMENT to bypass missing egress.yaml file
+    # Using individual environment variables for Egress instead of a JSON string
     environment:
-      - EGRESS_CONFIG="{\"api_key\":\"vbrm_openvidu_key\",\"api_secret\":\"vbrm_openvidu_secret_2024_secure_key\",\"ws_url\":\"ws://livekit:7880\",\"redis\":{\"address\":\"redis:6379\",\"password\":\"VbrmRedis2024Secure\"},\"s3\":{\"access_key\":\"IJE1GG708IQ2LEH7I2AS\",\"secret\":\"PV7b+H48T5k0lSMnkjnu+tYdZTnBzwdiQCEo7mBj\",\"region\":\"us-east-1\",\"endpoint\":\"http://minio:9000\",\"bucket\":\"bankvision-mtb-ext\",\"force_path_style\":true}}"
-      - LIVEKIT_REDIS_ADDRESS=redis:6379
-      - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
-      - LIVEKIT_URL=ws://livekit:7880
+      - EGRESS_API_KEY=vbrm_openvidu_key
+      - EGRESS_API_SECRET=vbrm_openvidu_secret_2024_secure_key
+      - EGRESS_WS_URL=ws://livekit:7880
+      - EGRESS_REDIS_ADDRESS=redis:6379
+      - EGRESS_REDIS_PASSWORD=VbrmRedis2024Secure
+      - EGRESS_S3_ACCESS_KEY=IJE1GG708IQ2LEH7I2AS
+      - EGRESS_S3_SECRET=PV7b+H48T5k0lSMnkjnu+tYdZTnBzwdiQCEo7mBj
+      - EGRESS_S3_REGION=us-east-1
+      - EGRESS_S3_ENDPOINT=http://minio:9000
+      - EGRESS_S3_BUCKET=bankvision-mtb-ext
+      - EGRESS_S3_FORCE_PATH_STYLE=true
     deploy:
       resources:
         limits:
-          memory: 1500M
+          memory: 1512M
     networks:
       - mtb-network
 
