@@ -10,13 +10,10 @@ services:
     volumes:
       - ./config/livekit.yaml:/etc/livekit.yaml
     healthcheck:
-      test: ["CMD-SHELL", "ls /etc/livekit.yaml || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7880/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-    depends_on:
-      redis:
-        condition: service_healthy
     networks:
       - mtb-network
 
@@ -31,8 +28,7 @@ services:
     volumes:
       - ./config/egress.yaml:/etc/egress.yaml
     depends_on:
-      livekit:
-        condition: service_started
+      - livekit
     networks:
       - mtb-network
 
@@ -50,8 +46,7 @@ services:
     volumes:
       - ./config/ingress.yaml:/etc/ingress.yaml
     depends_on:
-      livekit:
-        condition: service_started
+      - livekit
     networks:
       - mtb-network
 
@@ -76,11 +71,6 @@ services:
     command: redis-server --requirepass ${REDIS_PASSWORD:-vbrm_pass}
     volumes:
       - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-vbrm_pass}", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - mtb-network
 
@@ -92,7 +82,11 @@ services:
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
-    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.external-url=/prometheus/ --web.route-prefix=/"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.external-url=/prometheus/"
+      - "--web.route-prefix=/"
     networks:
       - mtb-network
 
@@ -108,9 +102,6 @@ services:
       - ./config/grafana/provisioning:/etc/grafana/provisioning
     ports:
       - "3000:3000"
-    depends_on:
-      prometheus:
-        condition: service_started
     networks:
       - mtb-network
 
@@ -124,3 +115,4 @@ volumes:
   minio_data:
   prometheus_data:
   grafana_data:
+  loki_data:
