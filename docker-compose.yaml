@@ -9,6 +9,10 @@ services:
       - "50000-50020:50000-50020/udp"
     volumes:
       - ./config/livekit.yaml:/etc/livekit.yaml
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     networks:
       - mtb-network
 
@@ -18,6 +22,15 @@ services:
     command: redis-server --requirepass ${REDIS_PASSWORD:-VbrmRedis2024Secure}
     volumes:
       - ./data/redis:/data
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "VbrmRedis2024Secure", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - mtb-network
 
@@ -30,36 +43,25 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-vbrm_password_2024}
     volumes:
       - ./data/minio:/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     # Private storage to avoid conflict with existing server MinIO
+    # Reachable internally by Egress as 'minio:9000'
     networks:
       - mtb-network
 
-  egress:
-    image: livekit/egress:v1.8.6
-    restart: unless-stopped
-    environment:
-      - EGRESS_CONFIG_FILE=/etc/egress.yaml
-      - LIVEKIT_REDIS_ADDRESS=redis:6379
-      - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
-      - LIVEKIT_URL=ws://livekit:7880
-    volumes:
-      - ./config/egress.yaml:/etc/egress.yaml
-    networks:
-      - mtb-network
-
-#   ingress:
-#     image: livekit/ingress:v1.4.3
+#   egress:
+#     image: livekit/egress:v1.8.6
 #     restart: unless-stopped
-#     ports:
-#       - "1936:1935"
-#       - "7886:7885/udp"
 #     environment:
-#       - INGRESS_CONFIG_FILE=/etc/ingress.yaml
+#       - EGRESS_CONFIG_FILE=/etc/egress.yaml
 #       - LIVEKIT_REDIS_ADDRESS=redis:6379
 #       - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
 #       - LIVEKIT_URL=ws://livekit:7880
 #     volumes:
-#       - ./config/ingress.yaml:/etc/ingress.yaml
+#       - ./config/egress.yaml:/etc/egress.yaml
 #     networks:
 #       - mtb-network
 
