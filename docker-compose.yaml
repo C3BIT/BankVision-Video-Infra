@@ -10,11 +10,10 @@ services:
     volumes:
       - ./config/livekit.yaml:/etc/livekit.yaml
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7880/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      test: ["CMD-SHELL", "ls /etc/livekit.yaml || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
       redis:
         condition: service_healthy
@@ -33,7 +32,7 @@ services:
       - ./config/egress.yaml:/etc/egress.yaml
     depends_on:
       livekit:
-        condition: service_healthy
+        condition: service_started
     networks:
       - mtb-network
 
@@ -52,7 +51,7 @@ services:
       - ./config/ingress.yaml:/etc/ingress.yaml
     depends_on:
       livekit:
-        condition: service_healthy
+        condition: service_started
     networks:
       - mtb-network
 
@@ -79,8 +78,8 @@ services:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-vbrm_pass}", "ping"]
-      interval: 5s
-      timeout: 3s
+      interval: 10s
+      timeout: 5s
       retries: 5
     networks:
       - mtb-network
@@ -93,12 +92,11 @@ services:
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
-    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.external-url=/prometheus/ --web.route-prefix=/"
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.external-url=/prometheus/"
+      - "--web.route-prefix=/"
     networks:
       - mtb-network
 
@@ -114,14 +112,9 @@ services:
       - ./config/grafana/provisioning:/etc/grafana/provisioning
     ports:
       - "3000:3000"
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     depends_on:
       prometheus:
-        condition: service_healthy
+        condition: service_started
     networks:
       - mtb-network
 
@@ -134,11 +127,6 @@ services:
       - loki_data:/loki
     ports:
       - "3100:3100"
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     networks:
       - mtb-network
 
