@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD:-VbrmRedis2024Secure}
     volumes:
-      - redis_data:/data
+      - ./data/redis:/data
     networks:
       - mtb-network
 
@@ -29,31 +29,30 @@ services:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-admin}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-vbrm_password_2024}
     volumes:
-      - minio_data:/data
-    # No host ports mapped to avoid conflict with existing server MinIO.
-    # Reachable internally by Egress as 'minio:9000'.
+      - ./data/minio:/data
+    # Private storage to avoid conflict with existing server MinIO
     networks:
       - mtb-network
 
-#   egress:
-#     image: livekit/egress:v1.8.6
-#     restart: unless-stopped
-#     environment:
-#       - EGRESS_CONFIG_FILE=/etc/egress.yaml
-#       - LIVEKIT_REDIS_ADDRESS=redis:6379
-#       - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
-#       - LIVEKIT_URL=ws://livekit:7880
-#     volumes:
-#       - ./config/egress.yaml:/etc/egress.yaml
-#     networks:
-#       - mtb-network
+  egress:
+    image: livekit/egress:v1.8.6
+    restart: unless-stopped
+    environment:
+      - EGRESS_CONFIG_FILE=/etc/egress.yaml
+      - LIVEKIT_REDIS_ADDRESS=redis:6379
+      - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
+      - LIVEKIT_URL=ws://livekit:7880
+    volumes:
+      - ./config/egress.yaml:/etc/egress.yaml
+    networks:
+      - mtb-network
 
 #   ingress:
 #     image: livekit/ingress:v1.4.3
 #     restart: unless-stopped
 #     ports:
-#       - "1936:1935" # RTMP
-#       - "7886:7885/udp" # WHIP
+#       - "1936:1935"
+#       - "7886:7885/udp"
 #     environment:
 #       - INGRESS_CONFIG_FILE=/etc/ingress.yaml
 #       - LIVEKIT_REDIS_ADDRESS=redis:6379
@@ -68,7 +67,3 @@ networks:
   mtb-network:
     external: true
     name: mtb-network
-
-volumes:
-  redis_data:
-  minio_data:
