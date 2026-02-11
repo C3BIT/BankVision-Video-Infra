@@ -31,8 +31,37 @@ services:
     volumes:
       - minio_data:/data
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9100:9000" # Unique port for this project instance
+      - "9101:9001" # Unique port for this project console
+    networks:
+      - mtb-network
+
+  egress:
+    image: livekit/egress:v1.8.6
+    restart: unless-stopped
+    environment:
+      - EGRESS_CONFIG_FILE=/etc/egress.yaml
+      - LIVEKIT_REDIS_ADDRESS=redis:6379
+      - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
+      - LIVEKIT_URL=ws://livekit:7880
+    volumes:
+      - ./config/egress.yaml:/etc/egress.yaml
+    networks:
+      - mtb-network
+
+  ingress:
+    image: livekit/ingress:v1.4.3
+    restart: unless-stopped
+    ports:
+      - "1935:1935" # RTMP
+      - "7885:7885/udp" # WHIP
+    environment:
+      - INGRESS_CONFIG_FILE=/etc/ingress.yaml
+      - LIVEKIT_REDIS_ADDRESS=redis:6379
+      - LIVEKIT_REDIS_PASSWORD=VbrmRedis2024Secure
+      - LIVEKIT_URL=ws://livekit:7880
+    volumes:
+      - ./config/ingress.yaml:/etc/ingress.yaml
     networks:
       - mtb-network
 
