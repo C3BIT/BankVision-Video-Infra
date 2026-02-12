@@ -7,16 +7,16 @@ services:
     ports:
       - "7880:7880"
       - "7881:7881"
-      - "50000-50010:50000-50010/udp"
+      - "50000-50050:50000-50050/udp"
     environment:
       - |
         LIVEKIT_CONFIG=
         port: 7880
         rtc:
           port_range_start: 50000
-          port_range_end: 50010
+          port_range_end: 50050
           tcp_port: 7881
-          use_external_ip: false
+          use_external_ip: true
         redis:
           address: vbrm-redis:6379
           password: VbrmRedis2024Secure
