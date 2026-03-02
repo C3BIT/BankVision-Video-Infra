@@ -66,7 +66,6 @@ services:
     image: livekit/egress:v1.8.6
     restart: unless-stopped
     privileged: true
-    # ULTIMATE HACK: Create the config file internally to bypass Coolify volume issues
     shm_size: '1gb'
     cap_add:
       - SYS_ADMIN
@@ -77,7 +76,7 @@ services:
       - -c
       - |
         mkdir -p /tmp/egress
-        cat <<EOF > /tmp/egress/egress.yaml
+        cat <<'EOFCONFIG' > /tmp/egress/egress.yaml
         api_key: vbrm_openvidu_key
         api_secret: vbrm_openvidu_secret_2024_secure_key
         ws_url: ws://livekit:7880
@@ -91,8 +90,9 @@ services:
           endpoint: http://minio:9000
           bucket: bankvision-mtb-ext
           force_path_style: true
-        EOF
-        exec /tini -- egress --config /tmp/egress/egress.yaml
+        EOFCONFIG
+        export EGRESS_CONFIG_FILE=/tmp/egress/egress.yaml
+        exec /entrypoint.sh
     deploy:
       resources:
         limits:
