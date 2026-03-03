@@ -76,7 +76,7 @@ services:
       - -c
       - |
         mkdir -p /tmp/egress
-        cat <<'EOFCONFIG' > /tmp/egress/egress.yaml
+        cat <<EOFCONFIG > /tmp/egress/egress.yaml
         api_key: vbrm_openvidu_key
         api_secret: vbrm_openvidu_secret_2024_secure_key
         ws_url: ws://livekit:7880
@@ -84,8 +84,8 @@ services:
           address: vbrm-redis:6379
           password: VbrmRedis2024Secure
         s3:
-          access_key: IJE1GG708IQ2LEH7I2AS
-          secret: PV7b+H48T5k0lSMnkjnu+tYdZTnBzwdiQCEo7mBj
+          access_key: ${MINIO_ROOT_USER}
+          secret: ${MINIO_ROOT_PASSWORD}
           region: us-east-1
           endpoint: http://minio:9000
           bucket: bankvision-mtb-ext
@@ -97,6 +97,23 @@ services:
       resources:
         limits:
           memory: 1512M
+    networks:
+      - mtb-network
+
+  minio-init:
+    image: minio/mc:latest
+    restart: "no"
+    depends_on:
+      - minio
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}; do
+          echo 'Waiting for MinIO...'; sleep 2
+        done
+        mc mb --ignore-existing local/bankvision-mtb-ext
+        echo 'Bucket ready.'
     networks:
       - mtb-network
 
