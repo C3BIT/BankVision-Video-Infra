@@ -1,0 +1,32 @@
+# ============================================================
+# BankVision UAT — LiveKit Server Configuration
+# Server 3: uat-vddb (192.168.58.68) | Public IP: 124.109.105.65
+# Domain: uat-vddb.mutualtrustbank.com
+#
+# node_ip: must match the IP reachable by bank clients for WebRTC media.
+# If server IP changes, update node_ip and restart livekit.
+# ============================================================
+
+port: 7880
+bind_addresses:
+  - 0.0.0.0
+rtc:
+  port_range_start: 50000
+  port_range_end: 50050
+  tcp_port: 7881
+  node_ip: 124.109.105.65
+  use_external_ip: false
+  enable_loopback_candidate: true
+  use_ice_lite: false
+turn:
+  enabled: true
+  domain: uat-vddb.mutualtrustbank.com
+  tls_port: 5349
+  udp_port: 3478
+  cert_file: /etc/ssl/bankvision/fullchain.crt
+  key_file: /etc/ssl/bankvision/private.key
+redis:
+  address: redis:6379
+  password: VbrmRedis2024Secure
+keys:
+  vbrm_openvidu_key: vbrm_openvidu_secret_2024_secure_key

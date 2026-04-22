@@ -1,27 +1,24 @@
 services:
+  nginx:
+    image: nginx:1.29.7-alpine
+    container_name: bankvision-livekit-nginx
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/ssl/bankvision:/etc/ssl/bankvision:ro
+
   livekit:
-    image: livekit/livekit-server:v1.8.2
-    command: run
+    image: livekit/livekit-server:v1.10.1
     restart: unless-stopped
     ports:
       - "7880:7880"
       - "7881:7881"
       - "50000-50050:50000-50050/udp"
-    environment:
-      - |
-        LIVEKIT_CONFIG=
-        port: 7880
-        rtc:
-          port_range_start: 50000
-          port_range_end: 50050
-          tcp_port: 7881
-          node_ip: 124.109.105.65
-          use_external_ip: true
-        redis:
-          address: redis:6379
-          password: ${REDIS_PASSWORD}
-        keys:
-          ${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}
+    volumes:
+      - /etc/ssl/bankvision:/etc/ssl/bankvision:ro
+      - ./livekit.yaml:/etc/livekit.yaml:ro
+    command: --config /etc/livekit.yaml
     depends_on:
       - redis
     deploy:
@@ -32,11 +29,11 @@ services:
       - bankvision-net
 
   redis:
-    image: redis:7.4-alpine
+    image: redis:7.4.8-alpine
     restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - ./data/redis:/data
     deploy:
@@ -62,15 +59,12 @@ services:
       resources:
         limits:
           memory: 512M
-    networks:
-      - bankvision-net
 
   egress:
     image: livekit/egress:v1.8.6
     restart: unless-stopped
     privileged: true
     shm_size: '1gb'
-    network_mode: host
     cap_add:
       - SYS_ADMIN
     security_opt:
@@ -97,8 +91,9 @@ services:
         EOFCONFIG
         export EGRESS_CONFIG_FILE=/tmp/egress/egress.yaml
         exec /entrypoint.sh
+    network_mode: host
     depends_on:
-      - livekit
+      - redis
       - minio
     deploy:
       resources:
@@ -106,7 +101,7 @@ services:
           memory: 1512M
 
   minio-init:
-    image: minio/mc:latest
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
     restart: "no"
     depends_on:
       - minio
@@ -114,13 +109,21 @@ services:
       - /bin/sh
       - -c
       - |
-        until mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}; do
-          echo 'Waiting for MinIO...'; sleep 2
+        sleep 10
+        retries=0
+        until mc alias set local http://127.0.0.1:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} 2>/dev/null; do
+          retries=$((retries+1))
+          if [ $retries -ge 30 ]; then
+            echo 'MinIO not ready after 60s, giving up.'
+            exit 1
+          fi
+          echo "Waiting for MinIO... ($retries/30)"
+          sleep 2
         done
         mc mb --ignore-existing local/${MINIO_BUCKET}
-        echo 'Bucket ready.'
-    networks:
-      - bankvision-net
+        mc anonymous set download local/${MINIO_BUCKET}
+        echo 'Bucket ready with public read access.'
+    network_mode: host
 
 networks:
   bankvision-net:
