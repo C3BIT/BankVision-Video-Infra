@@ -26,7 +26,8 @@ services:
         limits:
           memory: 768M
     networks:
-      - bankvision-net
+      bankvision-net:
+        ipv4_address: 172.30.0.10
 
   redis:
     image: redis:7.4.8-alpine
@@ -128,3 +129,7 @@ services:
 networks:
   bankvision-net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
