@@ -1,10 +1,12 @@
 port: 7880
+bind_addresses:
+  - 0.0.0.0
 rtc:
   port_range_start: 50000
-  port_range_end: 50020
+  port_range_end: 50050
   tcp_port: 7881
-  node_ip: 124.109.105.65
   use_external_ip: false
+  enable_loopback_candidate: true
 
 redis:
   address: redis:6379
@@ -13,17 +15,10 @@ redis:
 keys:
   vbrm_openvidu_key: vbrm_openvidu_secret_2024_secure_key
 
-logging:
-  level: info
-  pion_level: warn
-
-room:
-  auto_create: true
-  empty_timeout: 300
-  max_participants: 50
-
 webhook:
-  urls: []
+  api_key: vbrm_openvidu_key
+  urls:
+    - http://core-api.bankvision-app.svc.cluster.local:8443/api/webhook/livekit
 
 turn:
   enabled: false
